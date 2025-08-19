@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ item.name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col justify-between">
+
+    <main class="flex-grow flex items-center justify-center p-6">
+        <div class="bg-white shadow-2xl rounded-2xl p-8 max-w-md w-full text-center transform transition duration-500 hover:scale-105">
+            <h1 class="text-3xl font-bold text-gray-900 mb-3">{{ item.name }}</h1>
+            <p class="text-gray-600 mb-4">{{ item.description }}</p>
+            <p class="text-xl font-semibold text-indigo-600 mb-6">
+    {{ item.price }} {% if item.currency == 'usd' %}$ {% else %}₽{% endif %}
+</p>
+
+            <button id="checkout-button" 
+                class="w-full bg-indigo-600 text-white py-3 px-6 rounded-xl shadow-md hover:bg-indigo-700 active:scale-95 transition-all duration-200">
+                Купить сейчас
+            </button>
+
+            <p class="text-sm text-gray-400 mt-4">Оплата защищена Stripe 💳</p>
+        </div>
+    </main>
+
+    <footer class="bg-gray-200 text-center py-4 text-gray-600">
+        &copy; 2025 My Stripe Shop
+    </footer>
+
+    <script>
+        const stripe = Stripe("{{ stripe_public_key }}");
+        const button = document.getElementById("checkout-button");
+
+        button.addEventListener("click", async () => {
+            try {
+                const response = await fetch("{% url 'buy-item' item.id %}", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": "{{ csrf_token }}",
+                        "Content-Type": "application/json"
+                    },
+                });
+                const data = await response.json();
+
+                const result = await stripe.redirectToCheckout({ sessionId: data.id });
+                if (result.error) {
+                    alert(result.error.message);
+                }
+            } catch (e) {
+                console.error("Ошибка при создании сессии:", e);
+                alert("Произошла ошибка при создании платежа.");
+            }
+        });
+    </script>
+</body>
+</html>

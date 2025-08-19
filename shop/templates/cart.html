@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Корзина</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+<a href="{% url 'items-list' %}" 
+   class="fixed top-4 left-4 bg-gray-500 text-white px-4 py-2 rounded-xl shadow hover:bg-gray-600 transition font-semibold z-50">
+    ← Вернуться к товарам
+</a>
+
+<main class="max-w-5xl mx-auto py-20 px-6 flex-1">
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-12 text-center">🛒 Ваша корзина</h1>
+
+    {% if items %}
+    <div class="grid gap-6">
+        {% for item in items %}
+        <div class="bg-white p-6 rounded-2xl shadow-xl flex justify-between items-center transition hover:shadow-2xl">
+            <div>
+                <h2 class="text-2xl font-semibold text-gray-900">{{ item.name }}</h2>
+                <p class="text-gray-700">{{ item.description }}</p>
+                       <p class="text-xl font-semibold text-indigo-600 mb-6">
+    {{ item.price }} {% if item.currency == 'usd' %}$ {% else %}₽{% endif %}
+</p>
+            </div>
+            <div class="flex flex-col items-end space-y-2">
+                <a href="{% url 'remove-from-cart' item.id %}" 
+                   class="text-red-600 hover:text-red-800 font-semibold">
+                    ❌ Удалить
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-8 bg-white p-6 rounded-2xl shadow-xl flex justify-between items-center flex-wrap gap-4">
+<span class="text-2xl font-bold">
+    Итого: 
+    <span class="text-indigo-600">
+        {{ total }} {% if cart_currency == 'usd' %}$ {% else %}₽{% endif %}
+    </span>
+</span>
+        <button id="checkout-button" 
+                class="bg-indigo-600 text-white px-6 py-3 rounded-xl shadow hover:bg-indigo-700 transition font-semibold">
+            Перейти к оплате
+        </button>
+    </div>
+
+    <script>
+        const checkoutButton = document.getElementById("checkout-button");
+        checkoutButton.addEventListener("click", async () => {
+            const response = await fetch("{% url 'buy-cart' %}");
+            const data = await response.json();
+
+            if(data.error){
+                alert(data.error);
+                return;
+            }
+
+            const stripe = Stripe(data.public_key);
+            stripe.redirectToCheckout({ sessionId: data.id });
+        });
+    </script>
+    {% else %}
+    <p class="text-gray-700 text-xl text-center">В корзине пока нет товаров.</p>
+    {% endif %}
+</main>
+
+<footer class="bg-gray-200 text-gray-700 py-6 mt-auto text-center">
+    © 2025 MyShop. Все права защищены.
+</footer>
+
+</body>
+</html>
