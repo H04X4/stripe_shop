@@ -9,6 +9,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Выполнить миграции и запустить Gunicorn
 CMD python manage.py migrate --noinput && \
     gunicorn project.wsgi:application --bind 0.0.0.0:8000
