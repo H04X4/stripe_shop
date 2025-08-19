@@ -2,3 +2,4 @@ Django
 stripe
 python-dotenv
 gunicorn
+whitenoise
