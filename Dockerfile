@@ -9,13 +9,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN echo "from django.contrib.auth import get_user_model\n\
+RUN echo "\
+from django.contrib.auth import get_user_model\n\
 User = get_user_model()\n\
 username='h04x4'\n\
 password='qwerty123'\n\
 email='admin@example.com'\n\
 if not User.objects.filter(username=username).exists():\n\
-    User.objects.create_superuser(username=username, email=email, password=password)\n" > create_admin.py
+    User.objects.create_superuser(username=username, email=email, password=password)\n\
+" > create_admin.py
 
 CMD python manage.py migrate --noinput && \
     python manage.py shell < create_admin.py && \
